@@ -31,9 +31,9 @@
             <button id="end-creating">End Creating</button>
         </div>
 
-        <svg id="svg" viewBox="0 0 1370 1170" xmlns="http://www.w3.org/2000/svg"
+        <svg id="svg" width="1370" height="1170" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www/w3.org/1999/xlink">
-
+            <!-- 1370 viewBox="0 0 600 1170" -->
             <!-- for future usage we can make image dynamic -->
             <!-- <image id="image-svg" href="./assets/svgs/index.jpeg" x="0" y="0" height="770.625" width="1370" /> -->
         </svg>
@@ -111,14 +111,14 @@
 
 
         // for test 
-        // DOMSvg.addEventListener("mousemove", (event) => {
-        //     console.log("------------------------");
-        //     const rect = event.target.getBoundingClientRect();
-        //     console.log("the rect", rect);
-        //     console.log("offset", event.offsetX, event.offsetY);
-        //     console.log("page", event.pageX, event.pageY);
-        //     console.log("client", event.clientX, event.clientY);
-        // })
+        DOMSvg.addEventListener("mousemove", (event) => {
+            console.log("------------------------");
+            const rect = event.target.getBoundingClientRect();
+            console.log("the rect", rect);
+            console.log("offset", event.offsetX, event.offsetY);
+            console.log("page", event.pageX, event.pageY);
+            console.log("client", event.clientX, event.clientY);
+        })
 
 
 
