@@ -33,7 +33,7 @@
 
         <svg id="svg" width="1370" height="1170" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www/w3.org/1999/xlink">
-            <!-- 1370 viewBox="0 0 600 1170" -->
+            <!-- 1370 viewBox="0 0 1370 1170" -->
             <!-- for future usage we can make image dynamic -->
             <!-- <image id="image-svg" href="./assets/svgs/index.jpeg" x="0" y="0" height="770.625" width="1370" /> -->
         </svg>
@@ -68,37 +68,29 @@
         DOMSvg.addEventListener("click", (event) => {
             if (editing) {
                 const rect = event.target.getBoundingClientRect();
-                // console.log("the rect", rect);
-                // console.log("the client", event.clientX, event.clientY);
                 const X = event.offsetX;
                 const Y = event.offsetY;
-                const rectWidthOneOfHundred = rect.width / 100;
-                const rectHeightOneOfHundred = rect.height / 100;
                 const radius = 37;
 
-                const offsetXPercentage = X / rectWidthOneOfHundred;
-                const offsetYPercentage = Y / rectHeightOneOfHundred;
-                const amountXFromRadius = radius * (offsetXPercentage / 100);
-                const amountYFromRadius = radius * (offsetYPercentage / 100);
+                // calc for unbalanced cursor
+                // const rectWidthOneOfHundred = rect.width / 100;
+                // const rectHeightOneOfHundred = rect.height / 100;
+                // const offsetXPercentage = X / rectWidthOneOfHundred;
+                // const offsetYPercentage = Y / rectHeightOneOfHundred;
+                // const amountXFromRadius = radius * (offsetXPercentage / 100);
+                // const amountYFromRadius = radius * (offsetYPercentage / 100);
 
-
-                // console.log("xx", offsetXPercentage, amountXFromRadius);
-                // console.log("yy", offsetYPercentage, amountYFromRadius);
-
-                const x = X + amountXFromRadius;  //x position within the element.
-                const y = Y + amountYFromRadius  //y position within the element.
-                // const x = event.clientX - rect.left //x position within the element.
-                // const y = event.clientY - rect.top;  //y position within the element.
-
+                // const x = X + amountXFromRadius;  //x position within the element.
+                // const y = Y + amountYFromRadius  //y position within the element.
                 const rightLeftBottomLimit = radius + 20 // 20 is the constant given;
                 const leftBoundaryLimit = rightLeftBottomLimit;
                 const topBoundaryLimit = 50;
                 const rightBoundaryLimit = rect.width - rightLeftBottomLimit;
                 const bottomBoundaryLimit = rect.height - rightLeftBottomLimit;
-                const limitCheck = x >= leftBoundaryLimit && x <= rightBoundaryLimit && y >= topBoundaryLimit && y <= bottomBoundaryLimit;
+                const limitCheck = X >= leftBoundaryLimit && X <= rightBoundaryLimit && Y >= topBoundaryLimit && Y <= bottomBoundaryLimit;
 
                 if (limitCheck) {
-                    createSeat(x, y, radius);
+                    createSeat(X, Y, radius);
                 } else {
                     // can do some cool warning error animations
                     console.log("out of boundary");
@@ -111,14 +103,14 @@
 
 
         // for test 
-        DOMSvg.addEventListener("mousemove", (event) => {
-            console.log("------------------------");
-            const rect = event.target.getBoundingClientRect();
-            console.log("the rect", rect);
-            console.log("offset", event.offsetX, event.offsetY);
-            console.log("page", event.pageX, event.pageY);
-            console.log("client", event.clientX, event.clientY);
-        })
+        // DOMSvg.addEventListener("mousemove", (event) => {
+        //     console.log("------------------------");
+        //     const rect = event.target.getBoundingClientRect();
+        //     console.log("the rect", rect);
+        //     console.log("offset", event.offsetX, event.offsetY);
+        //     console.log("page", event.pageX, event.pageY);
+        //     console.log("client", event.clientX, event.clientY);
+        // })
 
 
 
