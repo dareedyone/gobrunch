@@ -28,10 +28,9 @@ app.post("/api/upload_svg", (req, res) => {
 	});
 });
 
-// for development
-// const PORT = process.env.PORT || 3007;
-// app.listen(PORT, () => {
-// 	console.log(`Server is running on port ${PORT}.`);
-// });
+const PORT = process.env.PORT || 3007;
+app.listen(PORT, () => {
+	console.log(`Server is running on port ${PORT}.`);
+});
 
-module.exports = app;
+// module.exports = app;

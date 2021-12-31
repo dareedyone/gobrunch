@@ -20,6 +20,7 @@
   "homepage": "https://github.com/dareedyone/gobrunch#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
     "express": "^4.17.2",
     "formidable": "^2.0.1"
   }
