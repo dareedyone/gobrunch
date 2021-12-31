@@ -13,7 +13,7 @@ app.get("/", (req, res) => {
 	res.sendFile("public/index.html", { root: __dirname });
 });
 
-app.post("/upload_svg", (req, res) => {
+app.post("/api/upload_svg", (req, res) => {
 	// parse a file upload
 	const form = formidable({ multiples: false });
 
@@ -29,10 +29,9 @@ app.post("/upload_svg", (req, res) => {
 });
 
 // for development
-
-module.exports = app;
-
 // const PORT = process.env.PORT || 3007;
 // app.listen(PORT, () => {
 // 	console.log(`Server is running on port ${PORT}.`);
 // });
+
+module.exports = app;

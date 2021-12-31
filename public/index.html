@@ -98,7 +98,7 @@
                 const formData = new FormData();
                 formData.append("svg", svgInput.files[0]);
 
-                const { data: usableSvgString } = await axios.post('/upload_svg', formData, {
+                const { data: usableSvgString } = await axios.post('/api/upload_svg', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
