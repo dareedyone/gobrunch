@@ -51,6 +51,7 @@
                 Load
             </label>
             <input id="svg-file" type="file">
+            <button id="save-svg">Save</button>
 
         </div>
 
@@ -77,18 +78,38 @@
         // Dom elements
         const addCircleButton = document.getElementById("add-circle");
         const endCreatingButton = document.getElementById("end-creating");
+        const saveSvgButton = document.getElementById("save-svg");
+
 
 
         // Functions
-        const createSeat = (x, y, radius) => {
+        const _createSeat = (x, y, radius) => {
             // TODO  consider class if further actions 
             const seat = svg.circle(x, y, radius);
             seat.attr({
                 class: "seat",
+                fill: "rgb(240, 238, 236)"
                 // id: "seat-1",
 
 
             })
+        };
+
+        const handleSvgSave = async () => {
+            try {
+                const svgWrapper = document.getElementById("svg-wrapper");
+                const rawVg = svgWrapper.innerHTML;
+                const fileName = window.prompt("Enter your file name");
+                if (!fileName)
+                    return alert("No file name inserted");
+
+                const response = await axios.post("/api/save_svg", { fileName, rawVg });
+                alert(`${response.data.fileName} saved successfully !`)
+
+            } catch (error) {
+                console.log("error", error);
+            }
+
         }
 
 
@@ -98,18 +119,25 @@
                 const formData = new FormData();
                 formData.append("svg", svgInput.files[0]);
 
-                const { data: usableSvgString } = await axios.post('/api/upload_svg', formData, {
+                const { data: usableSvgString } = await axios.post('/api/process_svg', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 });
                 // console.log(usableSvgString);
                 const divNode = document.createElement("div");
+                divNode.id = "svg-wrapper";
                 divNode.innerHTML = usableSvgString;
                 container.appendChild(divNode);
+
+
                 // show control buttons 
-                addCircleButton.style.display = "inline-block";
-                endCreatingButton.style.display = "inline-block";
+                const buttons = document.getElementsByTagName("button");
+                console.log("gt", buttons, Object.values(buttons));
+                Object.values(buttons).forEach((button => {
+                    button.style.display = "inline-block";
+                }))
+
                 // set up the new  svg view box
                 DOMSvg = document.getElementsByTagName("svg")[0];
                 svg = Snap("svg");
@@ -203,7 +231,7 @@
 
 
                 if (limitCheck) {
-                    createSeat(svgPoint.x, svgPoint.y, radius);
+                    _createSeat(svgPoint.x, svgPoint.y, radius);
                 } else {
                     // can do some cool warning error animations
                     console.log("out of boundary");
@@ -227,6 +255,8 @@
             editing = false;
         });
         svgInput.addEventListener("change", getUsableSvgString);
+
+        saveSvgButton.addEventListener("click", handleSvgSave)
 
 
 
