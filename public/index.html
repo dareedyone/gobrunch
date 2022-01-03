@@ -21,9 +21,7 @@
             fill: rgb(240, 238, 236);
         } */
 
-        input[type="file"] {
-            display: none;
-        }
+
 
         .custom-file-upload {
             border: 2px solid #ccc;
@@ -34,8 +32,15 @@
             cursor: pointer;
         }
 
+        input[type="file"],
         button {
             display: none;
+        }
+
+        #control-btn-panel {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
         }
     </style>
     <script src="./assets/Snap.svg-0.5.1/dist/snap.svg-min.js"></script>
@@ -44,7 +49,7 @@
 
 <body>
     <div id="container">
-        <div>
+        <div id="control-btn-panel">
             <button id="add-circle">Add Circle</button>
             <button id="end-creating">End Creating</button>
             <label for="svg-file" class="custom-file-upload">
@@ -55,6 +60,7 @@
             <button id="delete-svg">Delete</button>
 
         </div>
+
 
         <!-- <svg id="svg" width="1200" height="1170" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www/w3.org/1999/xlink"> -->
@@ -93,14 +99,8 @@
                 fill: "rgb(240, 238, 236)"
                 // id: "seat-1",
 
-
             })
         };
-
-        // swap highlightedNode on new highlight
-        // create un-highlight (third listed ) func so that other button events like save, add circle, endCreating can use it
-        // make prev hn back to default
-        // hide delete in un-highlight func
 
 
 
@@ -121,8 +121,6 @@
             }
 
         }
-
-
 
         const handleSvgProcess = async (event) => {
             try {
@@ -223,7 +221,7 @@
         const doCircleCreate = (event) => {
             // console.log("do circle runs");
             // console.log("ora", DOMSvg.getScreenCTM(), "another", DOMSvg.getScreenCTM().inverse());
-            // console.log("event nodename", event.target.type, event.target.tagName, event.target.nodeName);
+            // console.log("event nodeName", event.target.type, event.target.tagName, event.target.nodeName);
             const point = DOMSvg.createSVGPoint();
             const rectPoint = DOMSvg.createSVGPoint();
             point.x = event.clientX;
