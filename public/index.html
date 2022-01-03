@@ -17,9 +17,9 @@
             color: white;
         }
 
-        .seat {
+        /* .seat {
             fill: rgb(240, 238, 236);
-        }
+        } */
 
         input[type="file"] {
             display: none;
@@ -29,7 +29,7 @@
             border: 2px solid #ccc;
             display: inline-block;
             padding: 5px;
-            background-color: rgb(58, 58, 194);
+            background-color: rgb(58, 162, 194);
             color: white;
             cursor: pointer;
         }
@@ -52,6 +52,7 @@
             </label>
             <input id="svg-file" type="file">
             <button id="save-svg">Save</button>
+            <button id="delete-svg">Delete</button>
 
         </div>
 
@@ -71,14 +72,15 @@
         const svgInput = document.getElementById("svg-file");
         const container = document.getElementById("container");
         // const ImageSvg = document.getElementById("svg");
-        let svg, DOMSvg;
-        let editing = false;
+        let svg, DOMSvg, highlightedNode, addCircle = false;
+
 
 
         // Dom elements
         const addCircleButton = document.getElementById("add-circle");
         const endCreatingButton = document.getElementById("end-creating");
         const saveSvgButton = document.getElementById("save-svg");
+        const deleteSvgButton = document.getElementById("delete-svg");
 
 
 
@@ -95,8 +97,16 @@
             })
         };
 
+        // swap highlightedNode on new highlight
+        // create un-highlight (third listed ) func so that other button events like save, add circle, endCreating can use it
+        // make prev hn back to default
+        // hide delete in un-highlight func
+
+
+
         const handleSvgSave = async () => {
             try {
+                clearExistedHighlight();
                 const svgWrapper = document.getElementById("svg-wrapper");
                 const rawVg = svgWrapper.innerHTML;
                 const fileName = window.prompt("Enter your file name");
@@ -114,11 +124,11 @@
 
 
 
-        const getUsableSvgString = async (event) => {
+        const handleSvgProcess = async (event) => {
             try {
+                clearExistedHighlight();
                 const formData = new FormData();
                 formData.append("svg", svgInput.files[0]);
-
                 const { data: usableSvgString } = await axios.post('/api/process_svg', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
@@ -133,15 +143,20 @@
 
                 // show control buttons 
                 const buttons = document.getElementsByTagName("button");
-                console.log("gt", buttons, Object.values(buttons));
+                // console.log("gt", buttons, Object.values(buttons));
                 Object.values(buttons).forEach((button => {
-                    button.style.display = "inline-block";
+                    // console.log("btnId", button.id);
+                    const dependentButtons = button.id === "end-creating" || button.id === "delete-svg";
+                    if (!dependentButtons) {
+                        button.style.display = "inline-block";
+                    }
+
                 }))
 
                 // set up the new  svg view box
                 DOMSvg = document.getElementsByTagName("svg")[0];
                 svg = Snap("svg");
-                DOMSvg.addEventListener("click", handleCircleCreate)
+                DOMSvg.addEventListener("click", handleSvgControls)
 
                 // for test 
 
@@ -166,102 +181,151 @@
             }
 
         }
-
-        const handleCircleCreate = (event) => {
-            // console.log("orafl", DOMSvg.getScreenCTM(), "another", DOMSvg.getScreenCTM().inverse());
-            if (editing) {
-                const point = DOMSvg.createSVGPoint();
-                const rectPoint = DOMSvg.createSVGPoint();
-                point.x = event.clientX;
-                point.y = event.clientY;
-                const rect = DOMSvg.getBoundingClientRect();
-                const DOMSvgLeftBorderClient = rect.left;
-                const DOMSvgRightBorderClient = rect.right;
-                const DOMSvgTopBorderClient = rect.top;
-                const DOMSvgBottomBorderClient = rect.bottom;
-
-
-                const radius = 37;
-                const rightLeftBottomLimit = radius + 20 // 20 is the constant given 57 + 8 = 65;
-
-                const leftBoundaryLimit = DOMSvgLeftBorderClient + rightLeftBottomLimit;
-                const topBoundaryLimit = DOMSvgTopBorderClient + 50; // 50 is the constant given
-                const rightBoundaryLimit = DOMSvgRightBorderClient - rightLeftBottomLimit; // 1292 - 57 = 1235
-                const bottomBoundaryLimit = DOMSvgBottomBorderClient - rightLeftBottomLimit;
-
-                // calculating svg coords for borders
-                // first
-                rectPoint.x = leftBoundaryLimit;
-                rectPoint.y = topBoundaryLimit;
-
-
-                let svgRectPoint = rectPoint.matrixTransform(DOMSvg.getScreenCTM().inverse());
-                console.log("first svg rect", svgRectPoint);
-                const x1 = svgRectPoint.x;
-                const y1 = svgRectPoint.y;
-
-                // second
-                rectPoint.x = rightBoundaryLimit;
-                rectPoint.y = bottomBoundaryLimit;
-                svgRectPoint = rectPoint.matrixTransform(DOMSvg.getScreenCTM().inverse());
-                const x2 = svgRectPoint.x;
-                const y2 = svgRectPoint.y;
-                console.log("second svg rect", svgRectPoint);
-
-                const svgPoint = point.matrixTransform(DOMSvg.getScreenCTM().inverse());
-                // const limitCheck = svgPoint.x >= rectPoint.a && svgPoint.x <= rectPoint.c && svgPoint.y >= rectPoint.b && svgPoint.y <= rectPoint.d;
-                const limitCheck = svgPoint.x >= x1 && svgPoint.x <= x2 && svgPoint.y >= y1 && svgPoint.y <= y2;
-
-                // console.log("-------------------------");
-
-                // console.log("svgPoint", svgPoint);
-
-                // console.log("client", event.clientX, event.clientY);
-
-                // calc for unbalanced cursor
-                // const rectWidthOneOfHundred = rect.width / 100;
-                // const rectHeightOneOfHundred = rect.height / 100;
-                // const offsetXPercentage = X / rectWidthOneOfHundred;
-                // const offsetYPercentage = Y / rectHeightOneOfHundred;
-                // const amountXFromRadius = radius * (offsetXPercentage / 100);
-                // const amountYFromRadius = radius * (offsetYPercentage / 100);
-
-                // const x = X + amountXFromRadius;  //x position within the element.
-                // const y = Y + amountYFromRadius  //y position within the element.
-
-
-                if (limitCheck) {
-                    _createSeat(svgPoint.x, svgPoint.y, radius);
-                } else {
-                    // can do some cool warning error animations
-                    console.log("out of boundary");
-                }
-
-
-
+        // refactor this later for generic elements
+        const doHighlight = (event) => {
+            // console.log("doHighlight runs");
+            // un-target circle and make generic  
+            if (event.target.nodeName === "circle") {
+                const currentSeat = event.target;
+                const seat = Snap(currentSeat);
+                highlightedNode = seat;
+                // console.log("the seat", seat);
+                seat.attr({
+                    stroke: "rgb(58, 162, 194)",
+                    "stroke-width": 3,
+                    "stroke-dasharray": 7
+                });
+                deleteSvgButton.style.display = "inline-block";
             }
+        }
+        const clearExistedHighlight = () => {
+            if (highlightedNode) {
+                highlightedNode.attr({
+                    stroke: "rgb(58, 162, 194)",
+                    "stroke-width": 0,
+                    "stroke-dasharray": 0
+                });
+                highlightedNode = undefined;
+                deleteSvgButton.style.display = "none";
+            }
+
+        }
+        const handleSvgControls = (event) => {
+            if (addCircle) {
+                doCircleCreate(event);
+                return;
+            }
+            clearExistedHighlight();
+            doHighlight(event)
+
+        }
+
+        const doCircleCreate = (event) => {
+            // console.log("do circle runs");
+            // console.log("ora", DOMSvg.getScreenCTM(), "another", DOMSvg.getScreenCTM().inverse());
+            // console.log("event nodename", event.target.type, event.target.tagName, event.target.nodeName);
+            const point = DOMSvg.createSVGPoint();
+            const rectPoint = DOMSvg.createSVGPoint();
+            point.x = event.clientX;
+            point.y = event.clientY;
+            const rect = DOMSvg.getBoundingClientRect();
+            const DOMSvgLeftBorderClient = rect.left;
+            const DOMSvgRightBorderClient = rect.right;
+            const DOMSvgTopBorderClient = rect.top;
+            const DOMSvgBottomBorderClient = rect.bottom;
+
+
+            const radius = 37;
+            const rightLeftBottomLimit = radius + 20 // 20 is the constant given 57 + 8 = 65;
+
+            const leftBoundaryLimit = DOMSvgLeftBorderClient + rightLeftBottomLimit;
+            const topBoundaryLimit = DOMSvgTopBorderClient + 50; // 50 is the constant given
+            const rightBoundaryLimit = DOMSvgRightBorderClient - rightLeftBottomLimit; // 1292 - 57 = 1235
+            const bottomBoundaryLimit = DOMSvgBottomBorderClient - rightLeftBottomLimit;
+
+            // calculating svg coords for borders
+            // first
+            rectPoint.x = leftBoundaryLimit;
+            rectPoint.y = topBoundaryLimit;
+
+
+            let svgRectPoint = rectPoint.matrixTransform(DOMSvg.getScreenCTM().inverse());
+            // console.log("first svg rect", svgRectPoint);
+            const x1 = svgRectPoint.x;
+            const y1 = svgRectPoint.y;
+
+            // second
+            rectPoint.x = rightBoundaryLimit;
+            rectPoint.y = bottomBoundaryLimit;
+            svgRectPoint = rectPoint.matrixTransform(DOMSvg.getScreenCTM().inverse());
+            const x2 = svgRectPoint.x;
+            const y2 = svgRectPoint.y;
+            // console.log("second svg rect", svgRectPoint);
+
+            const svgPoint = point.matrixTransform(DOMSvg.getScreenCTM().inverse());
+            // const limitCheck = svgPoint.x >= rectPoint.a && svgPoint.x <= rectPoint.c && svgPoint.y >= rectPoint.b && svgPoint.y <= rectPoint.d;
+            const limitCheck = svgPoint.x >= x1 && svgPoint.x <= x2 && svgPoint.y >= y1 && svgPoint.y <= y2;
+
+            // console.log("-------------------------");
+
+            // console.log("svgPoint", svgPoint);
+
+            // console.log("client", event.clientX, event.clientY);
+
+            // calc for unbalanced cursor
+            // const rectWidthOneOfHundred = rect.width / 100;
+            // const rectHeightOneOfHundred = rect.height / 100;
+            // const offsetXPercentage = X / rectWidthOneOfHundred;
+            // const offsetYPercentage = Y / rectHeightOneOfHundred;
+            // const amountXFromRadius = radius * (offsetXPercentage / 100);
+            // const amountYFromRadius = radius * (offsetYPercentage / 100);
+
+            // const x = X + amountXFromRadius;  //x position within the element.
+            // const y = Y + amountYFromRadius  //y position within the element.
+
+
+            if (limitCheck) {
+                _createSeat(svgPoint.x, svgPoint.y, radius);
+            } else {
+                // can do some cool warning error animations
+                console.log("out of boundary");
+            }
+
+
+
+
         }
 
 
 
         // listeners
         addCircleButton.addEventListener("click", () => {
+            clearExistedHighlight();
             document.body.style.cursor = "crosshair";
-            editing = true;
+            addCircle = true;
+            document.getElementById("end-creating").style.display = "inline-block";
         });
 
-        endCreatingButton.addEventListener("click", () => {
+        endCreatingButton.addEventListener("click", (event) => {
             document.body.style.cursor = "default";
-            editing = false;
+            addCircle = false;
+            event.target.style.display = "none";
         });
-        svgInput.addEventListener("change", getUsableSvgString);
+        svgInput.addEventListener("change", handleSvgProcess);
 
         saveSvgButton.addEventListener("click", handleSvgSave)
 
+        deleteSvgButton.addEventListener("click", (event) => {
+            if (highlightedNode) {
+                highlightedNode.remove();
+                deleteSvgButton.style.display = "none";
+            }
+        })
 
 
-        // load
-        // Snap.load("gobrunch.svg", (fragment) => {
+
+        //  load - for later server loads
+        // Snap.load("https://gobrunchnow.herokuapp.com/store/test1.svg", (fragment) => {
         //     console.log("the frag", fragment);
         //     svg.append(fragment)
         // })
