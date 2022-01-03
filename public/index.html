@@ -185,14 +185,15 @@
             // un-target circle and make generic  
             if (event.target.nodeName === "circle") {
                 const currentSeat = event.target;
-                const seat = Snap(currentSeat);
-                highlightedNode = seat;
+                highlightedNode = Snap(currentSeat);
+
                 // console.log("the seat", seat);
-                seat.attr({
+                highlightedNode.attr({
                     stroke: "rgb(58, 162, 194)",
                     "stroke-width": 3,
                     "stroke-dasharray": 7
                 });
+                highlightedNode.drag();
                 deleteSvgButton.style.display = "inline-block";
             }
         }
