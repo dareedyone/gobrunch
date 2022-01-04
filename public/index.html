@@ -101,6 +101,27 @@
 
             })
         };
+        // prev es5 func is used cos of this overhead
+        function _move(dx, dy, posX, posY, event) {
+            console.log("client", event.clientX, event.clientY);
+            console.log("d", dx, dy);
+            const point = DOMSvg.createSVGPoint();
+            point.x = event.clientX;
+            point.y = event.clientY;
+
+            const svgPoint = point.matrixTransform(DOMSvg.getScreenCTM().inverse());
+
+            console.log("client", event.clientX, event.clientY);
+            console.log("d", dx, dy);
+            console.log("svg p", svgPoint.x, svgPoint.y);
+
+
+
+            this.attr({
+                cx: svgPoint.x,
+                cy: svgPoint.y
+            });
+        }
 
 
 
@@ -193,7 +214,11 @@
                     "stroke-width": 3,
                     "stroke-dasharray": 7
                 });
-                highlightedNode.drag();
+                highlightedNode.drag(_move, () => {
+                    console.log("move started");
+                }, () => {
+                    console.log("ended");
+                });
                 deleteSvgButton.style.display = "inline-block";
             }
         }
@@ -204,6 +229,7 @@
                     "stroke-width": 0,
                     "stroke-dasharray": 0
                 });
+                highlightedNode.undrag();
                 highlightedNode = undefined;
                 deleteSvgButton.style.display = "none";
             }
@@ -227,6 +253,7 @@
             const rectPoint = DOMSvg.createSVGPoint();
             point.x = event.clientX;
             point.y = event.clientY;
+            const svgPoint = point.matrixTransform(DOMSvg.getScreenCTM().inverse());
             const rect = DOMSvg.getBoundingClientRect();
             const DOMSvgLeftBorderClient = rect.left;
             const DOMSvgRightBorderClient = rect.right;
@@ -261,7 +288,7 @@
             const y2 = svgRectPoint.y;
             // console.log("second svg rect", svgRectPoint);
 
-            const svgPoint = point.matrixTransform(DOMSvg.getScreenCTM().inverse());
+
             // const limitCheck = svgPoint.x >= rectPoint.a && svgPoint.x <= rectPoint.c && svgPoint.y >= rectPoint.b && svgPoint.y <= rectPoint.d;
             const limitCheck = svgPoint.x >= x1 && svgPoint.x <= x2 && svgPoint.y >= y1 && svgPoint.y <= y2;
 
