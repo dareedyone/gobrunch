@@ -78,7 +78,7 @@
         const svgInput = document.getElementById("svg-file");
         const container = document.getElementById("container");
         // const ImageSvg = document.getElementById("svg");
-        let svg, DOMSvg, highlightedNode, addCircle = false;
+        let svg, DOMSvg, highlightedNode, prevPosition = 0, addCircle, delta = false;
 
 
 
@@ -94,6 +94,7 @@
         const _createSeat = (x, y, radius) => {
             // TODO  consider class if further actions 
             const seat = svg.circle(x, y, radius);
+            console.log("c created", x, y);
             seat.attr({
                 class: "seat",
                 fill: "rgb(240, 238, 236)"
@@ -101,26 +102,32 @@
 
             })
         };
-        // prev es5 func is used cos of this overhead
-        function _move(dx, dy, posX, posY, event) {
-            console.log("client", event.clientX, event.clientY);
-            console.log("d", dx, dy);
+
+        const _screenToSVGCoords = (x, y) => {
             const point = DOMSvg.createSVGPoint();
             point.x = event.clientX;
             point.y = event.clientY;
 
             const svgPoint = point.matrixTransform(DOMSvg.getScreenCTM().inverse());
+            return svgPoint;
+        }
 
-            console.log("client", event.clientX, event.clientY);
-            console.log("d", dx, dy);
-            console.log("svg p", svgPoint.x, svgPoint.y);
-
-
-
+        // prev es5 func is used cos of 'this' overhead
+        function handleMove(dx, dy, posX, posY, event) {
+            const svgPoint = _screenToSVGCoords(event.clientX, event.clientY);
+            // console.log("move delta", delta);
+            // console.log("vg point", svgPoint);
+            // console.log("calc", { x: svgPoint.x - delta.x, y: svgPoint.y - delta.y })
             this.attr({
-                cx: svgPoint.x,
-                cy: svgPoint.y
+                cx: svgPoint.x - delta.x,
+                cy: svgPoint.y - delta.y
             });
+        }
+
+        function handleStarted(x, y, event) {
+            const svgPoint = _screenToSVGCoords(event.clientX, event.clientY);
+            console.log("move started");
+            delta = { x: svgPoint.x - this.attr("cx"), y: svgPoint.y - this.attr("cy") };
         }
 
 
@@ -202,7 +209,6 @@
         }
         // refactor this later for generic elements
         const doHighlight = (event) => {
-            // console.log("doHighlight runs");
             // un-target circle and make generic  
             if (event.target.nodeName === "circle") {
                 const currentSeat = event.target;
@@ -214,9 +220,7 @@
                     "stroke-width": 3,
                     "stroke-dasharray": 7
                 });
-                highlightedNode.drag(_move, () => {
-                    console.log("move started");
-                }, () => {
+                highlightedNode.drag(handleMove, handleStarted, () => {
                     console.log("ended");
                 });
                 deleteSvgButton.style.display = "inline-block";
@@ -246,14 +250,9 @@
         }
 
         const doCircleCreate = (event) => {
-            // console.log("do circle runs");
-            // console.log("ora", DOMSvg.getScreenCTM(), "another", DOMSvg.getScreenCTM().inverse());
-            // console.log("event nodeName", event.target.type, event.target.tagName, event.target.nodeName);
-            const point = DOMSvg.createSVGPoint();
-            const rectPoint = DOMSvg.createSVGPoint();
-            point.x = event.clientX;
-            point.y = event.clientY;
-            const svgPoint = point.matrixTransform(DOMSvg.getScreenCTM().inverse());
+            const svgPoint = _screenToSVGCoords(event.clientX, event.clientY);
+
+            // for boundary
             const rect = DOMSvg.getBoundingClientRect();
             const DOMSvgLeftBorderClient = rect.left;
             const DOMSvgRightBorderClient = rect.right;
@@ -270,27 +269,10 @@
             const bottomBoundaryLimit = DOMSvgBottomBorderClient - rightLeftBottomLimit;
 
             // calculating svg coords for borders
-            // first
-            rectPoint.x = leftBoundaryLimit;
-            rectPoint.y = topBoundaryLimit;
-
-
-            let svgRectPoint = rectPoint.matrixTransform(DOMSvg.getScreenCTM().inverse());
-            // console.log("first svg rect", svgRectPoint);
-            const x1 = svgRectPoint.x;
-            const y1 = svgRectPoint.y;
-
-            // second
-            rectPoint.x = rightBoundaryLimit;
-            rectPoint.y = bottomBoundaryLimit;
-            svgRectPoint = rectPoint.matrixTransform(DOMSvg.getScreenCTM().inverse());
-            const x2 = svgRectPoint.x;
-            const y2 = svgRectPoint.y;
-            // console.log("second svg rect", svgRectPoint);
-
-
+            const rectPoint1 = _screenToSVGCoords(leftBoundaryLimit, topBoundaryLimit);
+            const rectPoint2 = _screenToSVGCoords(rightBoundaryLimit, bottomBoundaryLimit);
             // const limitCheck = svgPoint.x >= rectPoint.a && svgPoint.x <= rectPoint.c && svgPoint.y >= rectPoint.b && svgPoint.y <= rectPoint.d;
-            const limitCheck = svgPoint.x >= x1 && svgPoint.x <= x2 && svgPoint.y >= y1 && svgPoint.y <= y2;
+            const limitCheck = svgPoint.x >= rectPoint1.x && svgPoint.x <= rectPoint2.x && svgPoint.y >= rectPoint1.y && svgPoint.y <= rectPoint2.y;
 
             // console.log("-------------------------");
 
