@@ -33,7 +33,8 @@
         }
 
         input[type="file"],
-        button {
+        button,
+        label[for=import] {
             display: none;
         }
 
@@ -52,45 +53,59 @@
         <div id="control-btn-panel">
             <button id="add-circle">Add Circle</button>
             <button id="end-creating">End Creating</button>
-            <label for="svg-file" class="custom-file-upload">
+            <label for="load" class="custom-file-upload">
                 Load
             </label>
-            <input id="svg-file" type="file">
+            <input id="load" type="file">
+            <label for="import" class="custom-file-upload">
+                Import
+            </label>
+            <input id="import" type="file">
             <button id="save-svg">Save</button>
-            <button id="delete-svg">Delete</button>
+            <button id="delete-circle">Delete</button>
 
         </div>
-
-
-        <!-- <svg id="svg" width="1200" height="1170" xmlns="http://www.w3.org/2000/svg"
-            xmlns:xlink="http://www/w3.org/1999/xlink"> -->
-        <!-- 1370 viewBox="0 0 1370 1170" -->
-        <!-- for future usage we can make image dynamic -->
-        <!-- <image id="image-svg" href="./assets/svgs/index.jpeg" x="0" y="0" /> -->
-        <!-- </svg> -->
-
     </div>
 
 
 
 
     <script>
-        const svgInput = document.getElementById("svg-file");
-        const container = document.getElementById("container");
-        // const ImageSvg = document.getElementById("svg");
+        "use strict";
         let svg, DOMSvg, highlightedNode, prevPosition = 0, addCircle, delta = false;
+        const typeSvg = "image/svg+xml",
+            typeImages = ["image/jpeg", "image/png", "image/gif", "image/x-icon"];
 
+        // DOM ELEMENTS
+        const loadInput = document.getElementById("load");
+        const importInput = document.getElementById("import");
+        const container = document.getElementById("container");
 
+        // const ImageSvg = document.getElementById("svg");
 
-        // Dom elements
+        // buttons
         const addCircleButton = document.getElementById("add-circle");
         const endCreatingButton = document.getElementById("end-creating");
         const saveSvgButton = document.getElementById("save-svg");
-        const deleteSvgButton = document.getElementById("delete-svg");
+        const deleteSvgButton = document.getElementById("delete-circle");
+        const importButton = document.querySelector("label[for=import]");
 
 
 
-        // Functions
+
+        // Internals
+        const _getSvgRectProps = () => {
+            const rect = DOMSvg.getBoundingClientRect();
+            return [
+                rect.width,
+                rect.height,
+                rect.left,
+                rect.right,
+                rect.top,
+                rect.bottom
+            ];
+        }
+
         const _createSeat = (x, y, radius) => {
             // TODO  consider class if further actions 
             const seat = svg.circle(x, y, radius);
@@ -105,19 +120,17 @@
 
         const _screenToSVGCoords = (x, y) => {
             const point = DOMSvg.createSVGPoint();
-            point.x = event.clientX;
-            point.y = event.clientY;
+            point.x = x;
+            point.y = y;
 
             const svgPoint = point.matrixTransform(DOMSvg.getScreenCTM().inverse());
             return svgPoint;
         }
 
+        // Listeners
         // prev es5 func is used cos of 'this' overhead
         function handleMove(dx, dy, posX, posY, event) {
             const svgPoint = _screenToSVGCoords(event.clientX, event.clientY);
-            // console.log("move delta", delta);
-            // console.log("vg point", svgPoint);
-            // console.log("calc", { x: svgPoint.x - delta.x, y: svgPoint.y - delta.y })
             this.attr({
                 cx: svgPoint.x - delta.x,
                 cy: svgPoint.y - delta.y
@@ -152,18 +165,30 @@
 
         const handleSvgProcess = async (event) => {
             try {
+                const file = event.target.files[0];
+
+                if (file.type !== typeSvg)
+                    return window.alert("Invalid Svg file !\nKindly select a valid svg file.");
+
                 clearExistedHighlight();
-                const formData = new FormData();
-                formData.append("svg", svgInput.files[0]);
-                const { data: usableSvgString } = await axios.post('/api/process_svg', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                });
-                // console.log(usableSvgString);
+
+                // FOR SERVER IMPLEMENTATION
+
+                // const formData = new FormData();
+                // formData.append("svg", event.target.files[0]);
+                // let { data: usableSvgString } = await axios.post('/api/process_svg', formData, {
+                //     headers: {
+                //         'Content-Type': 'multipart/form-data'
+                //     }
+                // });
+
+                // dp
+                // CLIENT IMPLEMENTATION
+                // console.log(file);
+                const usableText = await file.text();
                 const divNode = document.createElement("div");
                 divNode.id = "svg-wrapper";
-                divNode.innerHTML = usableSvgString;
+                divNode.innerHTML = usableText;
                 container.appendChild(divNode);
 
 
@@ -172,31 +197,35 @@
                 // console.log("gt", buttons, Object.values(buttons));
                 Object.values(buttons).forEach((button => {
                     // console.log("btnId", button.id);
-                    const dependentButtons = button.id === "end-creating" || button.id === "delete-svg";
-                    if (!dependentButtons) {
+                    const addCircleDependentButtons = button.id === "end-creating" || button.id === "delete-circle";
+                    if (!addCircleDependentButtons) {
                         button.style.display = "inline-block";
                     }
 
-                }))
+                }));
+
+                // show import button
+                importButton.style.display = "inline-block";
 
                 // set up the new  svg view box
                 DOMSvg = document.getElementsByTagName("svg")[0];
                 svg = Snap("svg");
                 DOMSvg.addEventListener("click", handleSvgControls)
 
+
                 // for test 
 
 
                 // DOMSvg.addEventListener("mousemove", (event) => {
                 //     console.log("------------------------");
-                //     console.log("event", event);
+                //     // console.log("event", event);
                 //     const rect = DOMSvg.getBoundingClientRect();
                 //     console.log("the rect", rect);
                 //     // the problem should lies with clientY and rect Y not being the same
                 //     // console.log("offset", event.offsetX, event.offsetY);
                 //     // console.log("page", event.pageX, event.pageY);
                 //     console.log("client", event.clientX, event.clientY);
-                // })
+                // });
 
 
 
@@ -238,7 +267,7 @@
                 deleteSvgButton.style.display = "none";
             }
 
-        }
+        };
         const handleSvgControls = (event) => {
             if (addCircle) {
                 doCircleCreate(event);
@@ -247,26 +276,78 @@
             clearExistedHighlight();
             doHighlight(event)
 
-        }
+        };
+
+        const handleImport = async (event) => {
+            const file = event.target.files[0];
+            if (!typeImages.includes(file.type))
+                return window.alert("Invalid Image file !\nKindly select a valid image file.");
+
+            const xmlns = "http://www.w3.org/2000/svg";
+            // create svg
+            // const svg = document.createElementNS(xmlns, "svg");
+            // svg.setAttribute("viewBox", "0 0 1370 1170");
+            // svg.setAttribute("width", "1370");
+            // svg.setAttribute("height", "1170");
+            // svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            // svg.setAttribute("xmlns:xlink", "http://www/w3.org/1999/xlink");
+
+            const _getImageProps = (dataURL) => new Promise(resolve => {
+                const image = new Image();
+                image.src = dataURL;
+                image.onload = () =>
+                    resolve([image.width, image.height])
+            });
+
+            const _readFileAsync = async (file) => new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+
+            const dataURL = await _readFileAsync(file);
+            const [imgWidth, imgHeight] = await _getImageProps(dataURL);
+            const [rectWidth, rectHeight] = _getSvgRectProps();
+            const boundarySvgPoint = _screenToSVGCoords(rectWidth, rectHeight);
+            // const xToCenter = (boundarySvgPoint.x - imgWidth) / 2;
+            const xToCenter = (rectWidth - imgWidth) / 2;
+
+            // create image
+            const imageNS = document.createElementNS(xmlns, "image");
+            imageNS.setAttribute("width", imgWidth);
+            imageNS.setAttribute("height", imgHeight);
+            imageNS.setAttribute("x", xToCenter);
+            // new support
+            imageNS.setAttribute("href", dataURL);
+            // old support
+            imageNS.setAttribute("xlink:href", dataURL);
+            DOMSvg.appendChild(imageNS);
+        };
 
         const doCircleCreate = (event) => {
             const svgPoint = _screenToSVGCoords(event.clientX, event.clientY);
-
+            // const rect = DOMSvg.getBoundingClientRect();
+            // const leftBorder = rect.left;
+            // const rightBorder = rect.right;
+            // const topBorder = rect.top;
+            // const bottomBorder = rect.bottom;
             // for boundary
-            const rect = DOMSvg.getBoundingClientRect();
-            const DOMSvgLeftBorderClient = rect.left;
-            const DOMSvgRightBorderClient = rect.right;
-            const DOMSvgTopBorderClient = rect.top;
-            const DOMSvgBottomBorderClient = rect.bottom;
+            const [
+                ,
+                ,
+                leftBorder,
+                rightBorder,
+                topBorder,
+                bottomBorder] = _getSvgRectProps();
 
 
             const radius = 37;
             const rightLeftBottomLimit = radius + 20 // 20 is the constant given 57 + 8 = 65;
 
-            const leftBoundaryLimit = DOMSvgLeftBorderClient + rightLeftBottomLimit;
-            const topBoundaryLimit = DOMSvgTopBorderClient + 50; // 50 is the constant given
-            const rightBoundaryLimit = DOMSvgRightBorderClient - rightLeftBottomLimit; // 1292 - 57 = 1235
-            const bottomBoundaryLimit = DOMSvgBottomBorderClient - rightLeftBottomLimit;
+            const leftBoundaryLimit = leftBorder + rightLeftBottomLimit;
+            const topBoundaryLimit = topBorder + 50; // 50 is the constant given
+            const rightBoundaryLimit = rightBorder - rightLeftBottomLimit; // 1292 - 57 = 1235
+            const bottomBoundaryLimit = bottomBorder - rightLeftBottomLimit;
 
             // calculating svg coords for borders
             const rectPoint1 = _screenToSVGCoords(leftBoundaryLimit, topBoundaryLimit);
@@ -275,12 +356,7 @@
             const limitCheck = svgPoint.x >= rectPoint1.x && svgPoint.x <= rectPoint2.x && svgPoint.y >= rectPoint1.y && svgPoint.y <= rectPoint2.y;
 
             // console.log("-------------------------");
-
-            // console.log("svgPoint", svgPoint);
-
-            // console.log("client", event.clientX, event.clientY);
-
-            // calc for unbalanced cursor
+            // manual calc for unbalanced cursor
             // const rectWidthOneOfHundred = rect.width / 100;
             // const rectHeightOneOfHundred = rect.height / 100;
             // const offsetXPercentage = X / rectWidthOneOfHundred;
@@ -319,7 +395,7 @@
             addCircle = false;
             event.target.style.display = "none";
         });
-        svgInput.addEventListener("change", handleSvgProcess);
+        loadInput.addEventListener("change", handleSvgProcess);
 
         saveSvgButton.addEventListener("click", handleSvgSave)
 
@@ -329,6 +405,8 @@
                 deleteSvgButton.style.display = "none";
             }
         })
+
+        importInput.addEventListener("change", handleImport)
 
 
 

@@ -23,9 +23,11 @@ app.post("/api/process_svg", (req, res) => {
 		if (err) return res.status(400).send(err);
 
 		// res.writeHead(200, { "content-type": "text/plain" });
+
 		fs.readFile(files.svg.filepath, function (err, data) {
 			if (err) return res.status(400).send(err);
-			return res.send(data);
+			// res.writeHead(200, { "Content-Type": "image/jpeg" });
+			return res.end(data);
 		});
 	});
 });
@@ -36,10 +38,8 @@ app.post("/api/save_svg", async (req, res) => {
 		const fileWithoutExt = fileName.split(".svg")[0];
 		let fileWithExt = fileWithoutExt + ".svg";
 		const repeatedFile = fileWithoutExt + "(1).svg";
-		// console.log("hit api save before", __dirname);
 		const storeDir = path.join(__dirname, "../public/store/");
-		// console.log("hit api save after");
-		console.log("the store", storeDir);
+		// console.log("the store", storeDir);
 		const files = await readStoreFiles(storeDir, fs);
 
 		files.every((file) => {
