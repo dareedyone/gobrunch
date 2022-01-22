@@ -74,7 +74,7 @@
         "use strict";
         let svg, DOMSvg, highlightedNode, prevPosition = 0, addCircle, delta = false;
         const typeSvg = "image/svg+xml",
-            typeImages = ["image/jpeg", "image/png", "image/gif", "image/x-icon"];
+            typeImages = ["image/jpeg", "image/png", "image/gif", "image/x-icon", typeSvg];
 
         // DOM ELEMENTS
         const loadInput = document.getElementById("load");
@@ -106,10 +106,9 @@
             ];
         }
 
-        const _createSeat = (x, y, radius) => {
+        const _createCircle = (x, y, radius) => {
             // TODO  consider class if further actions 
             const seat = svg.circle(x, y, radius);
-            console.log("c created", x, y);
             seat.attr({
                 class: "seat",
                 fill: "rgb(240, 238, 236)"
@@ -238,10 +237,17 @@
         }
         // refactor this later for generic elements
         const doHighlight = (event) => {
+
+            const currentNodeName = event.target.nodeName;
+            const isCircleOrImage = currentNodeName === "circle" || currentNodeName === "image"
             // un-target circle and make generic  
-            if (event.target.nodeName === "circle") {
+            if (currentNodeName === "circle") {
                 const currentSeat = event.target;
                 highlightedNode = Snap(currentSeat);
+                // console.log("the node", event.target, highlightedNode);
+                // currentSeat.setAttribute("stroke", "rgb(58, 162, 194)");
+                // currentSeat.setAttribute("stroke", "rgb(58, 162, 194)");
+                // currentSeat.setAttribute("stroke", "rgb(58, 162, 194)");
 
                 // console.log("the seat", seat);
                 highlightedNode.attr({
@@ -263,7 +269,7 @@
                     "stroke-dasharray": 0
                 });
                 highlightedNode.undrag();
-                highlightedNode = undefined;
+                highlightedNode = null;
                 deleteSvgButton.style.display = "none";
             }
 
@@ -282,7 +288,6 @@
             const file = event.target.files[0];
             if (!typeImages.includes(file.type))
                 return window.alert("Invalid Image file !\nKindly select a valid image file.");
-
             const xmlns = "http://www.w3.org/2000/svg";
             // create svg
             // const svg = document.createElementNS(xmlns, "svg");
@@ -306,11 +311,14 @@
             });
 
             const dataURL = await _readFileAsync(file);
-            const [imgWidth, imgHeight] = await _getImageProps(dataURL);
+            let [imgWidth, imgHeight] = await _getImageProps(dataURL);
+            // set default dimensions if none
+            imgWidth = imgWidth || 500;
+            imgHeight = imgHeight || 500;
             const [rectWidth, rectHeight] = _getSvgRectProps();
             const boundarySvgPoint = _screenToSVGCoords(rectWidth, rectHeight);
-            // const xToCenter = (boundarySvgPoint.x - imgWidth) / 2;
-            const xToCenter = (rectWidth - imgWidth) / 2;
+            const xToCenter = (boundarySvgPoint.x - imgWidth) / 2;
+            // const xToCenter = (rectWidth - imgWidth) / 2;
 
             // create image
             const imageNS = document.createElementNS(xmlns, "image");
@@ -331,7 +339,7 @@
             // const rightBorder = rect.right;
             // const topBorder = rect.top;
             // const bottomBorder = rect.bottom;
-            // for boundary
+            // for boundary     
             const [
                 ,
                 ,
@@ -369,7 +377,7 @@
 
 
             if (limitCheck) {
-                _createSeat(svgPoint.x, svgPoint.y, radius);
+                _createCircle(svgPoint.x, svgPoint.y, radius);
             } else {
                 // can do some cool warning error animations
                 console.log("out of boundary");
