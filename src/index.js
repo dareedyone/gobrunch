@@ -39,7 +39,7 @@ app.post("/api/save_svg", async (req, res) => {
 		let fileWithExt = fileWithoutExt + ".svg";
 		const repeatedFile = fileWithoutExt + "(1).svg";
 		const storeDir = path.join(__dirname, "../public/store/");
-		// console.log("the store", storeDir);
+		console.log("the store", storeDir);
 		const files = await readStoreFiles(storeDir, fs);
 
 		files.every((file) => {
@@ -50,8 +50,11 @@ app.post("/api/save_svg", async (req, res) => {
 			return true;
 		});
 
-		fs.writeFile(`${storeDir}/${fileWithExt}`, rawVg, (err, data) => {
+		fs.writeFile(`${storeDir}/${fileWithExt}`, rawVg, async (err, data) => {
+			console.log("write", "something went wrong", err);
 			if (err) return res.status(400).send("oops something went wrong !");
+			const files = await readStoreFiles(storeDir, fs);
+			console.log("new files", files);
 			res.status(200).json({ fileName: fileWithExt });
 		});
 	} catch (error) {
