@@ -288,7 +288,7 @@
             const file = event.target.files[0];
             if (!typeImages.includes(file.type))
                 return window.alert("Invalid Image file !\nKindly select a valid image file.");
-            const xmlns = "http://www.w3.org/2000/svg";
+            const SVG_NS = "http://www.w3.org/2000/svg";
             // create svg
             // const svg = document.createElementNS(xmlns, "svg");
             // svg.setAttribute("viewBox", "0 0 1370 1170");
@@ -318,18 +318,18 @@
             const [rectWidth, rectHeight] = _getSvgRectProps();
             const boundarySvgPoint = _screenToSVGCoords(rectWidth, rectHeight);
             const xToCenter = (boundarySvgPoint.x - imgWidth) / 2;
-            // const xToCenter = (rectWidth - imgWidth) / 2;
+            // const xToCenterWithoutMappingToCords = (rectWidth - imgWidth) / 2;
 
             // create image
-            const imageNS = document.createElementNS(xmlns, "image");
-            imageNS.setAttribute("width", imgWidth);
-            imageNS.setAttribute("height", imgHeight);
-            imageNS.setAttribute("x", xToCenter);
+            const NSImage = document.createElementNS(SVG_NS, "image");
+            NSImage.setAttributeNS(null, "width", imgWidth);
+            NSImage.setAttributeNS(null, "height", imgHeight);
+            NSImage.setAttributeNS(null, "x", xToCenter);
             // new support
-            imageNS.setAttribute("href", dataURL);
-            // old support
-            imageNS.setAttribute("xlink:href", dataURL);
-            DOMSvg.appendChild(imageNS);
+            NSImage.setAttributeNS(null, "href", dataURL);
+            // old support - caused namespace xml prob ?
+            // NSImage.setAttribute("xlink:href", dataURL);
+            DOMSvg.appendChild(NSImage);
         };
 
         const doCircleCreate = (event) => {
