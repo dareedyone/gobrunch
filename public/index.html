@@ -21,6 +21,11 @@
             fill: rgb(240, 238, 236);
         } */
 
+        circle,
+        image {
+            cursor: pointer;
+        }
+
 
 
         .custom-file-upload {
@@ -72,6 +77,9 @@
 
     <script>
         "use strict";
+        //  TODO
+        // Make sure saved svg are written with their type and not tex plain 
+        // for proper thumbnailing & props
         let svg, DOMSvg, highlightedNode, prevPosition = 0, addCircle, delta = false;
         const typeSvg = "image/svg+xml",
             typeImages = ["image/jpeg", "image/png", "image/gif", "image/x-icon", typeSvg];
@@ -130,16 +138,26 @@
         // prev es5 func is used cos of 'this' overhead
         function handleMove(dx, dy, posX, posY, event) {
             const svgPoint = _screenToSVGCoords(event.clientX, event.clientY);
+            console.log("ht", highlightedNode.type);
+            const { type } = highlightedNode;
+            const dxName = type === "circle" ? "cx" : "x";
+            const dyName = type === "circle" ? "cy" : "y";
             this.attr({
-                cx: svgPoint.x - delta.x,
-                cy: svgPoint.y - delta.y
+                [dxName]: svgPoint.x - delta.x,
+                [dyName]: svgPoint.y - delta.y
             });
         }
 
         function handleStarted(x, y, event) {
             const svgPoint = _screenToSVGCoords(event.clientX, event.clientY);
+            const { type } = highlightedNode;
             console.log("move started");
-            delta = { x: svgPoint.x - this.attr("cx"), y: svgPoint.y - this.attr("cy") };
+            if (type === "circle") {
+                delta = { x: svgPoint.x - this.attr("cx"), y: svgPoint.y - this.attr("cy") };
+            } else {
+                delta = { x: svgPoint.x - this.attr("x"), y: svgPoint.y - this.attr("y") };
+            }
+
         }
 
 
@@ -241,13 +259,15 @@
             const currentNodeName = event.target.nodeName;
             const isCircleOrImage = currentNodeName === "circle" || currentNodeName === "image"
             // un-target circle and make generic  
-            if (currentNodeName === "circle") {
-                const currentSeat = event.target;
-                highlightedNode = Snap(currentSeat);
+            if (isCircleOrImage) {
+                console.log("ele", currentNodeName);
+                const currentNode = event.target;
+                highlightedNode = Snap(currentNode);
+                console.log(highlightedNode);
                 // console.log("the node", event.target, highlightedNode);
-                // currentSeat.setAttribute("stroke", "rgb(58, 162, 194)");
-                // currentSeat.setAttribute("stroke", "rgb(58, 162, 194)");
-                // currentSeat.setAttribute("stroke", "rgb(58, 162, 194)");
+                // currentNode.setAttribute("stroke", "rgb(58, 162, 194)");
+                // currentNode.setAttribute("stroke", "rgb(58, 162, 194)");
+                // currentNode.setAttribute("stroke", "rgb(58, 162, 194)");
 
                 // console.log("the seat", seat);
                 highlightedNode.attr({
@@ -319,6 +339,7 @@
             const boundarySvgPoint = _screenToSVGCoords(rectWidth, rectHeight);
             const xToCenter = (boundarySvgPoint.x - imgWidth) / 2;
             // const xToCenterWithoutMappingToCords = (rectWidth - imgWidth) / 2;
+
 
             // create image
             const NSImage = document.createElementNS(SVG_NS, "image");
